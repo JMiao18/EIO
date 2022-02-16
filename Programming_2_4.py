@@ -7,14 +7,19 @@ This is a temporary script file.
 
 import os
 import numpy as np
-#import pandas as pd
+import pandas as pd
 import cyipopt
 import copy
-import polars as pl
+from joblib import Parallel, delayed
 import scipy.stats as stats
+from numba import jit
+import numba as nb
+import polars as pl
 import pyarrow as pa
-import pandas as pd
+from numba import prange
+from numba import njit
 os.chdir('/home/bizmia/Desktop/Joonhwi/NewProblemSet2')
+
 
 # %%
 ## (d) Read the data into memory.
@@ -88,44 +93,42 @@ class mnl:
         
         ## Find the size of data
         self.n = np.shape(self.X)[0]
+        self.k = np.shape(self.X)[1]
     
+    @jit
     def objective(self, beta):
         # The callback for calculating the objective function
-        likelihood = [0] * self.n
-        for i in range(self.n / 4):
+        likelihood = np.zeros(1,np.float64)
+        for i in range( round(self.n / 4) ):
             X_tmp = self.X[(i*4):(i*4+4)]
             y_tmp = self.y[(i*4):(i*4+4)]
-            # G_tmp = np.exp(X_tmp[y_tmp] @ beta) / np.sum(np.exp(X_tmp @ beta))
             
             A = np.exp(X_tmp @ beta) 
             B = np.sum(np.exp(X_tmp @ beta))
             
-            G_tmp = np.log(A / B) * y_tmp.T
-            likelihood[i * 4 : (i * 4 + 4)] = G_tmp
+            G_tmp = (A / B) * y_tmp.T
+            likelihood = likelihood + np.sum(G_tmp)
             
-        obj = np.sum(likelihood)    
-        return(obj)
-
+        return(likelihood)
+    
+    @jit
     def gradient(self, beta):
         ## (e) The function that calculates the score function
-        score = [[0] * 7] * round(self.n / 4)
-        for i in range(self.n / 4):
+        score = np.zeros(self.k, np.float64) 
+        for i in range( round(self.n / 4) ):
             X_tmp = self.X[(i*4):(i*4+4)]
             y_tmp = self.y[(i*4):(i*4+4)]
-            # G_tmp = np.exp(X_tmp[y_tmp] @ beta) / np.sum(np.exp(X_tmp @ beta))
             
             A = np.exp(y_tmp.T @ X_tmp @ beta) 
             B = np.sum(np.exp(X_tmp @ beta))
             
-            C = (X_tmp - y_tmp.T @ X_tmp).reshape([4,3])
+            C = (X_tmp - y_tmp.T @ X_tmp).reshape([4,self.k])
             D = np.exp(X_tmp @ beta)
             E = np.transpose(C) @ D
             
-            G_tmp = A / B
-            g_tmp = A * E / B**2
-            score[i] = g_tmp / G_tmp
+            score = score + A * E / B**2 
             
-        return(np.sum(score, axis = 0))
+        return(score)
     
     def hessianstructure(self):
             # The structure of the Hessian
@@ -134,15 +137,16 @@ class mnl:
             # Create a sparse matrix to hold the hessian structure
         hess_struc = np.nonzero(hess_struc) # This will return two set of indices
                  
-        print(hess_struc)
+        # print(hess_struc)
         return(hess_struc)
 
+    @jit
     def hessian(self, beta, lagrange, obj_factor):
             # Redefine parameter as column vector to use matrix multiplication
         beta = beta.reshape(len(beta),1)
             # The callback for calculating the Hessian
-        jacobian = [[[0] * 7] * 7] * round(self.n / 4)
-        for i in range(self.n / 4):
+        jacobian = [np.zeros(self.k,np.float64)] * self.k 
+        for i in range(round(self.n / 4)):
             X_tmp = self.X[(i*4):(i*4+4)]
             y_tmp = self.y[(i*4):(i*4+4)]
             # G_tmp = np.exp(X_tmp[y_tmp] @ beta) / np.sum(np.exp(X_tmp @ beta))
@@ -150,17 +154,17 @@ class mnl:
             A = np.exp(y_tmp.T @ X_tmp @ beta) 
             B = np.sum(np.exp(X_tmp @ beta))
             
-            C = (X_tmp - y_tmp.T @ X_tmp).reshape([4,3])
+            C = (X_tmp - y_tmp.T @ X_tmp).reshape([self.k, 4])
             D = np.exp(X_tmp @ beta)
-            E = np.transpose(C) @ D
+            E = C @ D
             
             # G_tmp = A / B
             # g_tmp = A * E / B**2
             
-            F = C[0].reshape([3,1]) @ X_tmp[0].reshape([1,3]) * D[0] + C[1].reshape([3,1]) @ X_tmp[1].reshape([1,3]) * D[1] + C[2].reshape([3,1]) @ X_tmp[2].reshape([1,3]) * D[2] + C[3].reshape([3,1]) @ X_tmp[3].reshape([1,3]) * D[3] 
-            jacobian[i] = A / (B)**3 * (E.reshape([3,1]) @ E.reshape([1,3]) + F)
+            F = C[0].reshape([self.k, 1]) @ X_tmp[0].reshape([1,self.k]) * D[0] + C[1].reshape([self.k, 1]) @ X_tmp[1].reshape([1,self.k]) * D[1] + C[2].reshape([self.k, 1]) @ X_tmp[2].reshape([1,self.k]) * D[2] + C[3].reshape([self.k, 1]) @ X_tmp[3].reshape([1,self.k]) * D[3] 
+            jacobian = jacobian + A / B**3 * (E.reshape([self.k,1]) @ E.reshape([1,self.k]) + F)
             
-        hess = -1 * obj_factor * np.sum(jacobian, axis = 0)
+        hess = -1 * obj_factor * jacobian
         hess = np.tril(hess)
             
         row, col = self.hessianstructure()
@@ -181,6 +185,72 @@ class mnl:
             ls_trials
             ):
         print("Objective value at iteration #%d is - %g" % (iter_count, obj_value))
+
+# %%
+##### Execute the nonlinear optimization to find the OLS estimator
+# Define the problem
+# Initialization value
+X = data[['x1', 'x2', 'x3', 'const_0', 'const_1', 'const_2', 'const_3']].to_numpy()
+y = data[['choice_alt']].to_numpy()
+beta0 = [0, 0, 0, 0, 0, 0, 0]
+# Parameter lower and upper bounds
+# lb = None#[1.0, 1.0, 1.0, 1.0]
+# ub = None#[5.0, 5.0, 5.0, 5.0]
+   
+# Constraint lower and upper bounds
+# cl = None
+# cu = None
+   
+# Initialize the problem
+mnl_nonlinear = cyipopt.Problem(
+    n = len(beta0),        # Dimension of parameter
+    m = 0,                  # Dimension of constraints
+    problem_obj = mnl(X, y), # Problem
+    # lb = lb,                # Parameter lower bound
+    # ub = ub,                # Parameter upper bound
+    # cl = cl,                # Constraint lower bound
+    # cu = cu                 # Constraint upper bound             
+       )
+          
+   # IPOPT options
+mnl_nonlinear.add_option('print_level', 5)
+# mnl_nonlinear.add_option('linear_solver', 'ma57')
+   #OLS_nonlinear.add_option('derivative_test', 'second-order')
+# mnl_nonlinear.add_option('derivative_test', 'none')
+# mnl_nonlinear.add_option('jac_d_constant', 'no')
+# mnl_nonlinear.add_option('hessian_constant', 'no')
+# mnl_nonlinear.add_option('hessian_approximation', 'limited-memory') # Approximate Hessian
+mnl_nonlinear.add_option('hessian_approximation', 'exact')
+mnl_nonlinear.add_option('mu_strategy', 'adaptive')
+mnl_nonlinear.add_option('max_iter', 10000)
+mnl_nonlinear.add_option('tol', 1e-8)
+mnl_nonlinear.add_option('acceptable_tol', 1e-8)
+
+list_n = [np.empty(7)] * 100
+for i in range(100):
+    list_n[i] = np.random.uniform(-10, 10, 7)
+
+beta_hat_list = np.empty(100)
+likelihood_list = np.empty(100)
+
+def f(nn):
+    beta_hat_nonlinear, info = mnl_nonlinear.solve(list_n[nn])
+    print("beta_hat using IPOPT:" + str(beta_hat_nonlinear))
+    print("obj_value using IPOPT:" + info['obj_val'])
+    beta_hat_list[nn] = beta_hat_nonlinear
+    likelihood_list[nn] = info['obj_val']
+f = jit(f)
+
+# Parallelize the execution
+backend = 'loky' 
+# Better not touch this if you're novice
+process_number = 1 
+# How many CPUs you're going to use?
+# Set to 1 due to computing power on PC
+result_dictionaries = Parallel(n_jobs = process_number, backend=backend)(
+    delayed(f)(nn) for nn in range(100)
+    )
+
 
 # %%
 ##### Execute the nonlinear optimization to find the OLS estimator
@@ -215,17 +285,34 @@ mnl_nonlinear.add_option('linear_solver', 'ma57')
 # mnl_nonlinear.add_option('derivative_test', 'none')
 # mnl_nonlinear.add_option('jac_d_constant', 'no')
 # mnl_nonlinear.add_option('hessian_constant', 'no')
-mnl_nonlinear.add_option('hessian_approximation', 'limited-memory') # Approximate Hessian
-# mnl_nonlinear.add_option('hessian_approximation', 'exact')
+# mnl_nonlinear.add_option('hessian_approximation', 'limited-memory') # Approximate Hessian
+mnl_nonlinear.add_option('hessian_approximation', 'exact')
 mnl_nonlinear.add_option('mu_strategy', 'adaptive')
 mnl_nonlinear.add_option('max_iter', 10000)
 mnl_nonlinear.add_option('tol', 1e-8)
 mnl_nonlinear.add_option('acceptable_tol', 1e-8)
 
-    # Execute the nonlinear optimization
-beta_hat_nonlinear, info = mnl_nonlinear.solve(beta0)
-print("beta_hat using IPOPT:" + str(beta_hat_nonlinear))
+list_n = [np.empty(7)] * 100
+for i in range(100):
+    list_n[i] = np.random.uniform(-10, 10, 7)
 
+beta_hat_list = np.empty(100)
+likelihood_list = np.empty(100)
+
+def f(nn):
+    beta_hat_nonlinear, info = mnl_nonlinear.solve(list_n[nn])
+    print("beta_hat using IPOPT:" + str(beta_hat_nonlinear))
+    print("obj_value using IPOPT:" + info['obj_val'])
+    beta_hat_list[nn] = beta_hat_nonlinear
+    likelihood_list[nn] = info['obj_val']
+f = jit(f)
+
+# Parallelize the execution
+backend = 'loky' # Better not touch this if you're novice
+process_number = 1 # How many CPUs you're going to use?
+result_dictionaries = Parallel(n_jobs = process_number, backend=backend)(
+    delayed(f)(nn) for nn in range(100)
+    )
 
 # %%
 ##### (g) Market-level Analysis using OLS

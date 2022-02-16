@@ -1,0 +1,27 @@
+This is TeX, Version 3.14159265 (TeX Live 2017/Debian) (preloaded format=tex 2020.8.18)  26 JAN 2021 16:07
+**structure.tex
+(./structure.tex
+! Undefined control sequence.
+l.22 \usepackage
+                {amsmath,amsfonts,stmaryrd,amssymb} % Math packages
+? 
+! Interruption.
+<to be read again> 
+                   {
+l.22 \usepackage{
+                 amsmath,amsfonts,stmaryrd,amssymb} % Math packages
+? 
+! Undefined control sequence.
+l.23 \usepackage
+                {enumerate} % Custom item numbers for enumerations
+? 
+! Undefined control sequence.
+l.25 \usepackage
+                [ruled]{algorithm2e} % Algorithms
+? 
+! Emergency stop.
+l.25 \usepackage
+                [ruled]{algorithm2e} % Algorithms
+End of file on the terminal!
+
+No pages of output.

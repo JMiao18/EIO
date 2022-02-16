@@ -1,0 +1,332 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lachaise Assignment
+% LaTeX Template
+% Version 1.0 (26/6/2018)
+%
+% This template originates from:
+% http://www.LaTeXTemplates.com
+%
+% Authors:\textsl{}
+% Marion Lachaise & François Févotte
+% Vel (vel@LaTeXTemplates.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+\input{structure.tex} % Include the file specifying the document structure and custom commands
+
+%----------------------------------------------------------------------------------------
+%	ASSIGNMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{MKT 7317 Problem Set 2} % Title of the assignment
+
+\author{Jin Miao\\ \texttt{jxm190071@utdallas.edu}} % Author name and email address
+
+\date{University of Texas at Dallas \\ \today} % University, school and/or department name(s) and a date
+
+%----------------------------------------------------------------------------------------
+\usepackage{setspace}
+\usepackage{mathtools}  
+\usepackage{booktabs}
+\usepackage{graphicx} 
+\usepackage{caption,subcaption}
+%\usepackage[showframe]{geometry}
+\usepackage{listings}
+\usepackage{bbold}
+\usepackage{float}
+\usepackage{amsmath,amssymb}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{1em}
+\renewcommand{\baselinestretch}{1}
+
+\usepackage{amsmath, amsthm, amssymb, mathtools, thmtools}
+\usepackage{hyperref, cleveref}
+
+\begin{document}
+\doublespacing
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\section{Nested Logit with Three Alternatives}
+
+\subsection*{Question (a)}
+Given $\rho = 1$, we have 
+\begin{equation*}
+F(\epsilon_1, \epsilon_2) = e^{-e^{-\epsilon_1} - e^{-\epsilon_2}}
+\end{equation*}
+\begin{equation*}
+\begin{cases}
+F_1(\epsilon_1) & = \lim_{\epsilon_2 \rightarrow \infty} F(\epsilon_1, \epsilon_2) = \lim_{\epsilon_2 \rightarrow \infty} e^{-e^{-\epsilon_1} - e^{-\epsilon_2}}
+= e^{-e^{-\epsilon_1}} \\
+F_2(\epsilon_2) & = \lim_{\epsilon_1 \rightarrow \infty} F(\epsilon_1, \epsilon_2) = \lim_{\epsilon_1 \rightarrow \infty} e^{-e^{-\epsilon_1} - e^{-\epsilon_2}}
+= e^{-e^{-\epsilon_2}} \\
+\end{cases}
+\end{equation*}
+
+Given $F{\epsilon_1, \epsilon_2} = F_1(\epsilon_1) F_2(\epsilon_2)$, we conclude that $\epsilon_1 \indep \epsilon_2 $. 
+
+We can also derive the probability distribution function as follows. 
+
+\begin{equation*}
+f(\epsilon_1, \epsilon_2) = \frac{\partial^2 F(\epsilon_1, \epsilon_2)}{\partial \epsilon_1 \partial \epsilon_2} = \epsilon_1 \epsilon_2 e^{-\epsilon_1} e^{\epsilon_2} e^{-e^{-\epsilon_1} - e^{-\epsilon_2}}
+\end{equation*}
+\begin{equation*}
+f_1(\epsilon_1) = \frac{d F_1(\epsilon_1)}{d \epsilon_1 } = \epsilon_1 e^{-\epsilon_1} e^{-e^{-\epsilon_1}}
+\end{equation*}
+\begin{equation*}
+f_2(\epsilon_2) = \frac{d F_2(\epsilon_2)}{d \epsilon_2 } = \epsilon_2 e^{-\epsilon_2} e^{-e^{-\epsilon_2}}
+\end{equation*}
+
+Given $f(\epsilon_1, \epsilon_2) = f_1(\epsilon_1) f_2(\epsilon_2)$, we conclude that $\epsilon_1 \indep \epsilon_2 $. 
+
+\subsection*{Question (b)}
+\addtolength{\jot}{2pt}
+\begin{equation*}
+\begin{split}
+Pr\bigg(\text{i chooses 0}\bigg) & = Pr\bigg(U_{i0} \geq U_{i1} \text{ and } U_{i0} \geq U_{i2}\bigg) \\
+& = Pr\bigg(\delta_0 + \epsilon_0 \geq \delta_1 + \epsilon_{i1} \text{ and } \delta_0 + \epsilon_0 \geq \delta_2 + \epsilon_{i2}\bigg) \\
+& = Pr\bigg(\epsilon_{i1} \leq \delta_0 - \delta_1  + \epsilon_0 \text{ and } \epsilon_{i2} \leq \delta_0 - \delta_2 + \epsilon_0 \bigg)\\ 
+& = \int F\bigg(\delta_0 - \delta_1  + \epsilon_0, \delta_0 - \delta_2  + \epsilon_0) dF(\epsilon_{0}\bigg) \\
+& = \int_{-\infty}^{\infty} exp \bigg \{ - \bigg [exp\bigg(- \frac{ \delta_0 - \delta_1  + \epsilon_0 }{\rho} \bigg) + exp \bigg(- \frac{ \delta_0 - \delta_2 + \epsilon_0 }{\rho} \bigg) \bigg]^{\rho} \bigg \} d exp[-exp(\epsilon_0)] \\
+& = \int_{-\infty}^{\infty} exp\bigg\{  -exp(\epsilon_0) \bigg[ exp \big( - \frac{ \delta_0 - \delta_1  }{ \rho } \big) + exp \big( - \frac{ \delta_0 - \delta_2 }{ \rho } \big) \bigg]^{\rho} \bigg\} dexp[-exp(\epsilon_0)]  \\
+& = \frac{ 1 }{ \bigg[ exp \big( - \frac{ \delta_0 - \delta_1  }{ \rho } \big) + exp \big( - \frac{ \delta_0 - \delta_2 }{ \rho } \big) \bigg]^{\rho} + 1 }  \\
+& = \frac{ 1 }{ exp(-\delta_0) \bigg[ exp \big( \frac{ \delta_1  }{ \rho } \big) + exp \big( \frac{ \delta_2 }{ \rho } \big) \bigg]^{\rho} + 1 }  \\
+& = \frac{ exp(\delta_0) }{ \bigg[ exp \big( \frac{ \delta_1  }{ \rho } \big) + exp \big( \frac{ \delta_2 }{ \rho } \big) \bigg]^{\rho} + exp(\delta_0) }  \\
+\end{split}
+\end{equation*}
+
+\subsection*{Question (c)}
+
+Given that "1" (red bus) and "2" (blue bus) are in the same nest, and that "0" (car) is in another nest, we can derive the within-nest choice probability as 
+\begin{equation}
+\begin{split}
+& Pr\bigg(\text{i chooses 1 \bigg| i does not chooses 0}\bigg) \\
+& = Pr\bigg( U_{i1} \geq U_{i2} \bigg) \\
+& = Pr\bigg(\delta_1 + \epsilon_{i1} \geq \delta_0 + \epsilon_{i0} \bigg) \\
+& = \int_{-\infty}^{\infty} F_1\bigg( \epsilon, \delta_1 - \delta_2 + \epsilon \bigg) d\epsilon
+\end{split}
+\end{equation}
+where $F_1\bigg( \epsilon_1, \epsilon_2 \bigg) = \frac{\partial F(\epsilon_1, \epsilon_2)}{\partial \epsilon_1} = F(\epsilon_1, \epsilon_2) \bigg( exp\big( -\frac{\epsilon_1}{\rho} \big) + exp\big( -\frac{\epsilon_1}{\rho} \big) \bigg)^{\rho -1} exp\bigg( -\frac{\epsilon_1}{\rho} \bigg) $
+
+Then denote $K = exp\big( -\frac{\delta_1 - \delta_2}{\rho} \big) + 1$ and $t = exp\big( -\frac{\epsilon}{\rho} \big)$, we can simplify the integral as follows
+\begin{equation}
+\begin{split}
+& Pr\bigg(\text{i chooses 1 \bigg| i does not chooses 0}\bigg) \\
+& = \frac{\rho}{K} \int_{t = 0}^{+\infty} exp\bigg( -(tK)^{\rho} \bigg) (tK)^{\rho - 1} d(tK) \\
+& = -\frac{1}{K} \int_{t = 0}^{+\infty} exp\bigg( -(tK)^{\rho} \bigg)  d\bigg( -(tK)^{\rho} \bigg) \\
+& = \frac{1}{K} \\
+& = \frac{1}{1 + exp\big( -\frac{\delta_1 - \delta_2}{\rho} \big) } \\
+& = \frac{ exp\big( \frac{\delta_1}{\rho} \big) }{  exp\big( \frac{\delta_1}{\rho} \big) + exp\big( \frac{\delta_2}{\rho} \big) }
+\end{split}
+\end{equation}
+
+
+
+\section{Price Elasticities in Logit Demand Model}
+\addtolength{\jot}{-5pt}
+In the system of homogeneous consumers, the Marshallian demand is proportionate to the market share $s_j$, which is approximate to the individual choice probability $Pr(i \rightarrow j)$. Given the consideration set $\mathcal{J}_t$, the regularity condition holds that for any alternative $j \in \mathcal{J}_t$, the price after infinitesimal changes is still smaller or equal to the income, $p_j + \Delta p \leq m$. 
+
+\begin{equation*}
+\frac{\partial Pr(i \rightarrow j)}{\partial p_c} \frac{p_c}{s_j} = 
+\begin{cases}
+- \alpha p_j (1 - s_j) & \text{if    } j = c \\
+\alpha p_c s_c & \text{if    } j \neq c \\
+\end{cases}
+\end{equation*}
+
+This is the legitimate Marshallian own and cross price elasticities by using choice probability as the infinitesimal changes in prices $p_c$ leads to changes in the individual choice probabilities $Pr(i \rightarrow j)$, which then translates to proportional changes in the Marshallian demand. 
+
+However, this is not the legitimate Hicksian own and cross price elasticities. Hicksian demand function or compensated demand function for a good is his quantity demanded as part of the solution to minimizing his expenditure on all goods while delivering \textbf{a fixed level of utility}. This contradicts with the underlining assumption of the logit demand function. 
+\begin{equation*}
+Pr\bigg(i \rightarrow j \bigg) = Pr\bigg( U_{ij} \geq U_{ik} \forall k \neq j \in \mathcal{J}_t \bigg )
+\end{equation*}
+
+As a consequence, there is no utility level $\bar U$ which could serve as the fixed threshold in the sense that $Pr\bigg(i \rightarrow j \bigg) = Pr\bigg( U_{ij} \geq \bar U \bigg )$. In other words, $U_{ij} \geq \bar U$ cannot rule out the possibility that $U_{ik} > U_{ij} \geq \bar U$. In summary, the proposed price elasticities are illegitimate Hiscksian own and cross elasticities as only the \textbf{relative} utilities matter in the logit demand models, rather than the \textbf{absolute} levels. 
+
+
+\section{Linear Probability Model}
+\addtolength{\jot}{3pt}
+
+\subsection*{Question (a)}
+\begin{equation}
+\begin{split}
+P_i & = Pr\bigg\{ y_i = x_i^\prime \beta + u_i > 0 \bigg| x_i \bigg\} \\
+& = Pr\bigg\{ u_i > - x_i^\prime \beta \bigg| x_i \bigg\} \\
+\end{split}
+\end{equation}
+
+Given $u_i \sim^{iid} Uniform[-0.5, 0.5]$, we have 
+\begin{equation}
+\begin{split}
+P_i & = Pr\bigg\{ u_i > - x_i^\prime \beta \bigg| x_i \bigg\} \\
+& = 0.5 + x_i^\prime \beta
+\end{split}
+\end{equation}
+
+The error term in the linear probability model is
+\begin{equation*}
+e_i = d_i - P_i =
+\begin{cases}
+0.5 - x_i^\prime \beta & \text{if  } y_i = x_i^\prime \beta + u_i > 0 \\
+-0.5 - x_i^\prime \beta & \text{otherwise  } 
+\end{cases}
+\end{equation*}
+
+Then we derive the conditional expectation of the error terms as 
+\begin{equation*}
+\begin{split}
+\pmb{E}\bigg(e_i \bigg| x_i\bigg) & = Pr\bigg\{ d_i = 1 \bigg\} \pmb{E}\bigg(e_i \bigg| x_i, d_i = 1\bigg)  + Pr\bigg\{ d_i = 0 \bigg\} \pmb{E}\bigg(e_i \bigg| x_i, d_i = 0\bigg)\\
+& = \bigg( 0.5 - x_i^\prime \beta \bigg) \bigg( 0.5 + x_i^\prime \beta \bigg) + \bigg(-0.5 - x_i^\prime \beta \bigg) \bigg( 0.5 - x_i^\prime \beta \bigg) \\
+& = 0
+\end{split}
+\end{equation*}
+
+\subsection*{Question (b)}
+Then we derive the conditional variance of the error terms as 
+\begin{equation}
+\begin{split}
+\sigma_i^2 = \pmb{Var}\bigg(e_i \bigg| x_i\bigg) & = \pmb{E} \bigg(e_i^2 \bigg| x_i\bigg) + \Bigg\{ \pmb{E} \bigg(e_i \bigg| x_i\bigg) \Bigg\}^2\\
+& = \pmb{E} \bigg(e_i^2 \bigg| x_i\bigg) \\
+& = Pr\bigg\{ d_i = 1 \bigg\} \pmb{E}\bigg(e_i^2 \bigg| x_i, d_i = 1\bigg)  + Pr\bigg\{ d_i = 0 \bigg\} \pmb{E}\bigg(e_i^2 \bigg| x_i, d_i = 0\bigg)\\
+& = \bigg( 0.5 - x_i^\prime \beta \bigg)^2 \bigg( 0.5 + x_i^\prime \beta \bigg) + \bigg(-0.5 - x_i^\prime \beta \bigg)^2 \bigg( 0.5 - x_i^\prime \beta \bigg) \\
+& = 0.25 - \bigg(x_i^\prime \beta \bigg)^2
+\end{split}
+\end{equation}
+
+\subsection*{Question (c)}
+
+\begin{equation}
+\begin{split}
+\pmb{Cov}\bigg(e_i, e_j \bigg| x_i, x_j \bigg) & = \pmb{E} \bigg(e_i, e_j \bigg| x_i, x_j \bigg) + \Bigg\{ \pmb{E} \bigg(e_i \bigg| x_i\bigg) \pmb{E} \bigg(e_j \bigg| x_j \bigg) \Bigg\}\\
+& = \pmb{E} \bigg(e_i, e_j \bigg| x_i, x_j \bigg) \\
+& = Pr\bigg\{ d_i = 1, d_j = 1 \bigg\} \pmb{E}\bigg(e_i e_j \bigg| x_i, x_j, d_i = 1, d_j = 1 \bigg) \\ 
+& + Pr\bigg\{ d_i = 1, d_j = 0 \bigg\} \pmb{E}\bigg(e_i e_j \bigg| x_i, x_j, d_i = 1, d_j = 0 \bigg) \\
+& + Pr\bigg\{ d_i = 0, d_j = 1 \bigg\} \pmb{E}\bigg(e_i e_j \bigg| x_i, x_j, d_i = 0, d_j = 1 \bigg) \\
+& + Pr\bigg\{ d_i = 1, d_j = 1 \bigg\} \pmb{E}\bigg(e_i e_j \bigg| x_i, x_j, d_i = 0, d_j = 0 \bigg) \\
+& = 0
+\end{split}
+\end{equation}
+
+Combining (5)(6), we know that the error terms are heterogeneous and uncorrelated. 
+\begin{equation}
+\pmb{\Omega} = Diag\bigg(\sigma_i^2 \bigg)
+\end{equation}
+
+\addtolength{\jot}{-3pt}
+The regression specification of the linear probability model is as follows
+\begin{equation*}
+d_i = P_i + e_i = 0.5 + x_i^\prime \beta + e_i
+\end{equation*}
+
+The Ordinary Least-Square estimator
+\begin{equation*}
+\hat{\beta}_{OLS} = \bigg(\pmb{X}^\prime \pmb{X} \bigg)^{-1} \bigg(\pmb{X}^\prime (\pmb{d - 0.5} ) \bigg)
+\end{equation*}
+
+The estimated asymptotic variance matrix of $\hat \beta_{OLS}$ with heteroskedasticity robust standard errors 
+\begin{equation}
+\hat V [\hat \beta_{OLS}] = \bigg(\pmb{X}^\prime \pmb{X}\bigg)^{-1} \bigg(\pmb{X}^\prime \pmb{\hat \Omega} \pmb{X} \bigg)  \bigg(\pmb{X}^\prime \pmb{X}\bigg)^{-1}
+\end{equation}
+where $\pmb{\hat \Omega} = Diag(\hat e_i^2)$ and $\hat e_i = d_i - 0.5 - x_i^\prime \hat \beta_{OLS}$. 
+
+Given $e_i \bigg| x_i \rightarrow^d N\bigg(0, \pmb{\Omega} \bigg)$ and $\pmb{\Omega} = Diag\bigg(\sigma_i^2 \bigg)$, we have 
+\begin{equation*}
+plim \hat V [\hat \beta_{OLS}] = plim V [\hat \beta_{OLS}] = \bigg(\pmb{X}^\prime \pmb{X}\bigg)^{-1} \bigg(\pmb{X}^\prime \pmb{\Omega} \pmb{X} \bigg)  \bigg(\pmb{X}^\prime \pmb{X}\bigg)^{-1}
+\end{equation*}
+
+\subsection*{Question (d)}
+Given that the errors are heterogeneous and uncorrelated, we specify $V[e \big| x ] = exp(x^\prime \gamma)$. 
+
+Then use the non-linear least-square regression of $\hat e_i^2 = (d_i - 0.5 - x_i^\prime \hat \beta)^2$ on $exp(x^\prime \gamma)$ to derive $\hat \gamma$, which is the consistent estimator of $\gamma$. The estimator error matrix is 
+\begin{equation*}
+\pmb{\hat \Omega} = \pmb{\hat \Omega}(\hat \gamma) = exp(x^\prime \hat \gamma)
+\end{equation*} 
+
+We have the feasible generalized least-square estimator $\hat{\beta}_{FGLS}$, which is more efficient than the given $\hat{\beta}$ as 
+\begin{equation*}
+\hat{\beta}_{FGLS} = \bigg(\pmb{X}^\prime \pmb{\hat \Omega}^{-1} \pmb{X} \bigg)^{-1} \bigg(\pmb{X}^\prime \pmb{\hat \Omega}^{-1} (\pmb{d - 0.5} ) \bigg)
+\end{equation*}
+
+The estimated asymptotic variance of $\hat{\beta}_{FGLS}$ is 
+\begin{equation}
+\hat V [\hat \beta_{FGLS}] = \bigg(\pmb{X}^\prime \pmb{\hat \Omega}^{-1} \pmb{X} \bigg)^{-1}  
+\end{equation}
+
+\subsection*{Question (e)}
+Given that $\pmb{\Omega}(\gamma)$ is correctly specified and that $\hat gamma$ is consistent for $\gamma$, we have (Cameron \& Trivedi, page 82)
+\begin{equation*}
+\sqrt{N} \bigg( \hat \beta_{FGLS} - \beta \bigg) \rightarrow^{d} N\bigg[0, \bigg( plim N^{-1} \pmb{X}^\prime \pmb{\Omega}^{-1} \pmb{X} \bigg)^{-1} \bigg]
+\end{equation*}
+
+This implies that 
+\begin{itemize}
+	\item $\hat \beta_{FGLS}$ is a consistent estimator of $\beta$. $\hat \beta_{FGLS} \rightarrow_p \beta$ as $n \rightarrow \infty$
+	\item $\hat \beta_{FGLS}$ is second-moment efficient as $\hat \beta_{FGLS}$ has the same limiting variance matrix as $\hat \beta_{GLS}$. 
+\end{itemize}
+
+In summary, $\hat \beta_{FGLS}$ possesses the same asymptotic properties as $\hat \beta_{MLE}$. 
+
+\section{Multinomial Logit and MLE Estimation}
+\subsection*{Question (a)}
+The likelihood function of the binary choice models for individual $i$ is 
+\begin{equation*}
+L\bigg(\{ y_{i,j}, x_j \}_{j \in J} \bigg| \beta \bigg) = \prod_{i = 1}^{N} \prod_{j \in J} \bigg[ \frac{exp(x_j^\prime \beta)}{ \sum_{k = 0}^{J} exp(x_k^\prime \beta)} \bigg]^{y_{i,j}} 
+\end{equation*}
+
+
+The log-likelihood function of observing $\{ y_{i,j}, x_j \}_{j \in J}$ for individuals $i = 1, 2, ..., N$ is 
+\begin{equation*}
+lnL\bigg(\{ y_{i,j}, x_j \}_{j \in J} \bigg| \beta \bigg) = \sum_{i = 1}^{N} \sum_{j \in J} \bigg\{  y_{i,j} ln \big( \frac{exp(x_j^\prime \beta)}{ \sum_{k \in J} exp(x_k^\prime \beta)} \big) \bigg\}
+\end{equation*}
+
+\subsection*{Question (b)}
+Denote $G(x_j^\prime \beta) = \frac{exp(x_j^\prime \beta)}{ \sum_{k \in J} exp(x_k^\prime \beta)}$ and 
+\begin{equation*}
+\begin{split}
+g(x_j^\prime \beta) & = \frac{ d G(x_j^\prime \beta) }{d \beta } \\
+& = \frac{ exp(x_j^\prime \beta) \sum_{k \in J} \bigg[ (x_j - x_k) exp(x_k^\prime \beta) \bigg]  }{ \bigg(\sum_{k \in J} exp(x_k^\prime \beta) \bigg)^2  } \\
+\end{split}
+\end{equation*}
+
+Then we can rewrite $ln L\bigg(\{ y_{i,j}, x_j \}_{j \in J} \bigg| \beta \bigg) $ as 
+\begin{equation*}
+lnL\bigg(\{ y_{i,j}, x_j \}_{j \in J} \bigg| \beta \bigg) = \sum_{i = 1}^{N} \sum_{j \in J} \bigg\{  y_{i,j} ln \bigg( G(x_j^\prime \beta) \bigg) \bigg\}
+\end{equation*}
+
+Taking derivatives of $lnL\bigg(\{ y_{i,j}, x_j \}_{j = 0}^J \bigg| \beta \bigg)$ with respects to $\beta$, we can get the score function of the likelihood of observing the data $\{ y_{i,j}, x_j \}_{j \in J}$ for individuals $i = 1, 2, ..., N$ as follows. 
+\begin{equation*}
+\begin{split}
+s\bigg(\beta \bigg| \{ y_{i,j}, x_j \}_{j \in J} \bigg) & = \frac{d lnL \bigg(\{ y_{i,j}, x_j \}_{j \in J} \bigg| \beta \bigg) }{d \beta} \\
+& = \sum_{i = 1}^{N}\sum_{j \in J} \bigg\{  y_{i,j} \frac{ g(x_j^\prime \beta) }{ G(x_j^\prime \beta) }  \bigg\}
+\end{split}
+\end{equation*}
+
+\subsection*{Question (c)}
+The information matrix of the (unconditional) likelihood of observing the data for
+individuals $i = 1, 2, ..., N$ 
+\begin{equation*}
+I(\beta) = E_{\beta}\Bigg( s\bigg(\beta \bigg| \{ y_{i,j}, x_j \}_{j \in J} \bigg) s\bigg(\beta \bigg| \{ y_{i,j}, x_j \}_{j \in J} \bigg)^\prime \Bigg) = \sum_{i = 1}^{N}\sum_{j \in J} E_{\beta}\bigg\{  y_{i,j} \frac{ g(x_j^\prime \beta) g(x_j^\prime \beta)^\prime}{ G^2(x_j^\prime \beta) }  \bigg\}
+\end{equation*}
+
+Under mild regularity conditions, 
+\begin{equation*}
+I(\beta) = - E_{\beta} \Bigg( \frac{\partial}{\partial \beta} s\bigg(\beta \bigg| \{ y_{i,j}, x_j \}_{j \in J} \bigg) \Bigg) = - E_{\beta} \Bigg( \frac{\partial^2}{\partial \beta^2} lnL\bigg(\{ y_{i,j}, x_j \}_{j \in J} \bigg| \beta \bigg) \Bigg)
+\end{equation*}
+
+
+\end{document}
